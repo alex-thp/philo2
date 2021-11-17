@@ -1,6 +1,6 @@
 #include "philo.h"
 
-t_philo     init_philo(t_doc doc, int count)
+t_philo     init_philo(t_doc *doc, int count)
 {
     t_philo new;
     struct timeval tv;
@@ -16,19 +16,19 @@ t_philo     init_philo(t_doc doc, int count)
     return(new);
 }
 
-t_nurse     init_nurse(t_doc doc, t_philo *philo, int count)
+t_nurse     init_nurse(t_doc *doc, t_philo *philo, int count)
 {
-    t_nurse new;
+	t_nurse new;
 
-    new.nb = count;
-    new.doc = doc;
-    new.philo = philo;
+	new.nb = count;
+	new.doc = doc;
+	new.philo = philo;
     return (new);
 }
 
 void        *routine(void *arg)
 {
-    while(*(((t_philo*)arg)->doc.status) == 1)
+    while(*(((t_philo*)arg)->doc->status) == 1)
     {
         have_to_eat((t_philo*)arg);
         have_to_sleep((t_philo*)arg);
@@ -39,16 +39,23 @@ void        *routine(void *arg)
 
 void        *routine_nurse(void *arg)
 {
-    while(*(((t_nurse*)arg)->doc.status) == 1)
+	t_nurse *cat;
+
+	cat = (t_nurse*)arg;
+
+    while(*(cat->doc->status) == 1)
     {
-        check_if_dead(((t_nurse*)arg)->philo);
-        if (((t_nurse*)arg)->doc.status == 0)
+        check_if_dead(cat->philo);
+        if (cat->doc->status == 0)
+		{
+			//pthread_mutex_unlock(&cat->finish);
             return(NULL);
-    }
+		}
+	}
     return(NULL);
 }
 
-void        run(t_doc doc)
+void        run(t_doc *doc)
 {
     int                 count;
     pthread_t           *philo_t;
@@ -58,29 +65,31 @@ void        run(t_doc doc)
     struct timeval      tv;
 
     count = 0;
-    philo_t = malloc(sizeof(pthread_t) * doc.nb_philo);
-    nurse_t = malloc(sizeof(pthread_t) * doc.nb_philo);
-    philo = malloc(sizeof(t_philo) * doc.nb_philo);
-    nurse = malloc(sizeof(t_nurse) * doc.nb_philo);
+    philo_t = malloc(sizeof(pthread_t) * doc->nb_philo);
+    nurse_t = malloc(sizeof(pthread_t) * doc->nb_philo);
+    philo = malloc(sizeof(t_philo) * doc->nb_philo);
+    nurse = malloc(sizeof(t_nurse) * doc->nb_philo);
     gettimeofday(&tv, NULL);
-    doc.start = get_msec(tv.tv_sec, tv.tv_usec);
-    while(count < doc.nb_philo)
+    doc->start = get_msec(tv.tv_sec, tv.tv_usec);
+    while(count < doc->nb_philo)
     {
         philo[count] = init_philo(doc, count);
         nurse[count] = init_nurse(doc, &philo[count], count);
         count++;
     }
     count = 0;
-    while (count < doc.nb_philo)
+    while (count < doc->nb_philo)
     {
         pthread_create(&philo_t[count], NULL, (void*)routine, (void*)&philo[count]);
         pthread_create(&nurse_t[count], NULL, (void*)routine_nurse, (void*)&nurse[count]);
         count++;
     }
-    while (*(doc.status) == 1)
+    while (*(doc->status) == 1)
     {
         ;
     }
+	pthread_mutex_lock(&doc->finish);
+	printf("pas lock\n");
     // count = 0;
     // while(count < doc.nb_philo)
     // {

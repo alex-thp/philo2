@@ -23,11 +23,10 @@ char            *get_str(long int timestamp, t_philo *philo, char *str)
 
 void            print_message(long int timestamp, t_philo *philo, char *str)
 {
-    if(*(philo->doc.status) == 1 && philo->status == 1)
-    {
-        pthread_mutex_lock(&philo->doc.print);
-        printf("%ld %d %s\n", timestamp, philo->nb + 1, str);
-        if (philo->status == 1)
-            pthread_mutex_unlock(&philo->doc.print);
-    }
+    pthread_mutex_lock(&philo->doc->print);
+    printf("%ld %d %s\n", timestamp, philo->nb + 1, str);
+    if (*(philo->doc->status) == 1)
+	{
+        pthread_mutex_unlock(&philo->doc->print);
+	}
 }

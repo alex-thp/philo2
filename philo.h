@@ -18,11 +18,12 @@ typedef struct  s_doc
                 long int        start; 
                 int             *status;
                 pthread_mutex_t print;
+                pthread_mutex_t finish;
 }               t_doc;
 
 typedef struct  s_philo
 {
-                t_doc               doc;
+                t_doc               *doc;
                 int                 nb;
                 long int            last_meal;
                 int                 status;
@@ -32,7 +33,7 @@ typedef struct  s_philo
 
 typedef struct  s_nurse
 {
-                t_doc               doc;
+                t_doc               *doc;
                 t_philo             *philo;
                 int                 nb;
 }               t_nurse;
@@ -51,15 +52,15 @@ int 	ft_strlen(const char *s);
 parse.c
 */
 
-t_doc   parse_doc(char **av, int ac);
+t_doc   *parse_doc(char **av, int ac);
 
 /* 
 run.c
 */
 
-void        run(t_doc doc);
+void        run(t_doc *doc);
 void        *routine(void *arg);
-t_philo     init_philo(t_doc doc, int count);
+t_philo     init_philo(t_doc *doc, int count);
 
 /*
 eat.c
