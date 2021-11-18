@@ -7,12 +7,12 @@ void        have_to_sleep(t_philo* philo)
 
     gettimeofday(&tv, NULL);
     time = get_msec(tv.tv_sec, tv.tv_usec);
-    print_message(get_timestamp(*(philo->doc)), philo, "is sleeping");
+    print_message(philo, "is sleeping");
     while (get_time_since_start(time) < philo->doc->time_to_sleep)
-        usleep(10);
+        usleep(250);
 }
 
 void        have_to_think(t_philo* philo)
 {
-    print_message(get_timestamp(*(philo->doc)), philo, "is thinking");
+    print_message(philo, "is thinking");
 }

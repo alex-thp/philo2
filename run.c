@@ -16,23 +16,26 @@ t_philo     init_philo(t_doc *doc, int count)
     return(new);
 }
 
-t_nurse     init_nurse(t_doc *doc, t_philo *philo, int count)
+t_nurse     *init_nurse(t_doc *doc, t_philo *philo, int count)
 {
-	t_nurse new;
+	t_nurse *new;
 
-	new.nb = count;
-	new.doc = doc;
-	new.philo = philo;
+	new = malloc(sizeof(t_nurse));
+	new->nb = count;
+	new->doc = doc;
+	new->philo = philo;
     return (new);
 }
 
 void        *routine(void *arg)
 {
-    while(*(((t_philo*)arg)->doc->status) == 1)
+    while(*(((t_philo*)arg)->doc->status) >= 1)
     {
         have_to_eat((t_philo*)arg);
         have_to_sleep((t_philo*)arg);
         have_to_think((t_philo*)arg);
+        if(((t_philo*)arg)->nb_eat == ((t_philo*)arg)->doc->nb_time_philo_eat && ((t_philo*)arg)->doc->option == 1)
+            ((t_philo*)arg)->doc->status--;
     }
     return (NULL);
 }
@@ -40,18 +43,25 @@ void        *routine(void *arg)
 void        *routine_nurse(void *arg)
 {
 	t_nurse *cat;
+	int		i;
 
 	cat = (t_nurse*)arg;
-
-    while(*(cat->doc->status) == 1)
+	pthread_mutex_lock(&cat->doc->finish);
+    while(*(cat->doc->status) >= 1)
     {
-        check_if_dead(cat->philo);
-        if (cat->doc->status == 0)
+		i = 0;
+		while (i < cat->nb)
 		{
-			//pthread_mutex_unlock(&cat->finish);
-            return(NULL);
+        	check_if_dead(&cat->philo[i]);
+        	if (cat->philo[i].status == 0 || cat->doc->status == 0)
+			{
+				pthread_mutex_unlock(&cat->doc->finish);
+            	return(NULL);
+			}
+			i++;
 		}
 	}
+	pthread_mutex_unlock(&cat->doc->finish);
     return(NULL);
 }
 
@@ -66,37 +76,29 @@ void        run(t_doc *doc)
 
     count = 0;
     philo_t = malloc(sizeof(pthread_t) * doc->nb_philo);
-    nurse_t = malloc(sizeof(pthread_t) * doc->nb_philo);
+    nurse_t = malloc(sizeof(pthread_t));
     philo = malloc(sizeof(t_philo) * doc->nb_philo);
-    nurse = malloc(sizeof(t_nurse) * doc->nb_philo);
-    gettimeofday(&tv, NULL);
-    doc->start = get_msec(tv.tv_sec, tv.tv_usec);
     while(count < doc->nb_philo)
     {
         philo[count] = init_philo(doc, count);
-        nurse[count] = init_nurse(doc, &philo[count], count);
+		//print_message(get_timestamp(*(philo->doc)), &philo[count], "cree !\n");
         count++;
     }
+	nurse = init_nurse(doc, philo, count);
     count = 0;
+	gettimeofday(&tv, NULL);
+	doc->start = get_msec(tv.tv_sec, tv.tv_usec);
     while (count < doc->nb_philo)
     {
         pthread_create(&philo_t[count], NULL, (void*)routine, (void*)&philo[count]);
-        pthread_create(&nurse_t[count], NULL, (void*)routine_nurse, (void*)&nurse[count]);
         count++;
     }
-    while (*(doc->status) == 1)
+	pthread_create(nurse_t, NULL, (void*)routine_nurse, (void*)nurse);
+    while (*(doc->status) >= 1)
     {
         ;
     }
 	pthread_mutex_lock(&doc->finish);
-	printf("pas lock\n");
-    // count = 0;
-    // while(count < doc.nb_philo)
-    // {
-    //     pthread_join(philo_t[count], NULL);
-    //     pthread_join(nurse_t[count], NULL); 
-    //     count++;
-    // }
-
-    //FAIRE MES FREE
+	pthread_mutex_unlock(&doc->finish);
+    custom_free(philo_t, nurse_t, doc, philo, nurse);
 }

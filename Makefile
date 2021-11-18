@@ -1,4 +1,4 @@
-SRCS = main.c tools.c parse.c run.c eat.c sleep.c time.c print_message.c check.c
+SRCS = main.c tools.c parse.c run.c eat.c sleep.c time.c print_message.c check.c custom_free.c
 CFLAGS = -Wall -Werror -Wextra
 NAME = philo
 INC = philo.h

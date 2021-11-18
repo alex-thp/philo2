@@ -13,8 +13,6 @@ int     main(int ac, char **av)
     if (doc->nb_philo < 2)
         return (0);
     run(doc);
-    //printf("Bye\n");
-    // pthread_mutex_lock(&doc->finish);
-    // printf("pas lock\n");
+	free(doc);
     return (0);
 }

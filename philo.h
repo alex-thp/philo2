@@ -67,7 +67,7 @@ eat.c
 */
 
 void        have_to_eat(t_philo *philo);
-void        take_a_fork(t_philo *philo, pthread_mutex_t *fork);
+//void        take_a_fork(t_philo *philo, pthread_mutex_t *fork);
 
 
 /* 
@@ -82,7 +82,6 @@ time.c
 */
 
 long int    get_msec(time_t tv_sec, suseconds_t tv_usec);
-long int    get_time_from_start(long int start, long int now);
 long int    get_time_since_start(long int start);
 long int    get_time_since_last_meal(t_philo *philo);
 
@@ -90,13 +89,18 @@ long int    get_time_since_last_meal(t_philo *philo);
 print_message.c
 */
 
-long int    get_timestamp(t_doc doc);
-void        print_message(long int timestamp, t_philo *philo, char *str);
+void        print_message(t_philo *philo, char *str);
 
 /*
 check.c
 */
 
 void        check_if_dead(t_philo *philo);
+
+/* 
+custom_free.c
+*/
+
+void    custom_free(pthread_t *philo_t, pthread_t *nurse_t, t_doc *doc, t_philo *philo, t_nurse *nurse);
 
 #endif
